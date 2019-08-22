@@ -17,6 +17,7 @@ public static class Tools
 
     public static string hudObjName = "HUD";
 
+
     /// <summary>
     /// Get G Coast for moving from current position, Array Item values:
     /// <para>[0] [1] [2]</para>

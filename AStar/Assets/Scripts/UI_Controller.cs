@@ -13,6 +13,11 @@ public class UI_Controller : MonoBehaviour
     private int mouseCountMax = 3;
     private int[] itemTypes = new int[] { 0,1,5,6 };
 
+    public UnityEngine.UI.Text lbl_WallValue;
+
+    private Vector3 m_Orig;
+    private Vector3 zoom2;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -39,7 +44,36 @@ public class UI_Controller : MonoBehaviour
 
             setObjectType();
         }
+        if (Input.GetMouseButtonDown(1))
+        {
 
+            Debug.Log("Right button down " + mouseCounter.ToString());
+            mouseCounter--;
+            if (mouseCounter < 0)
+                mouseCounter = mouseCountMax;
+
+            setObjectType();
+        }
+        if (Input.GetMouseButton(0))
+        {
+            setObjectType();
+        }
+
+        if (Input.GetMouseButtonDown(2))
+        {
+            m_Orig = Input.mousePosition;
+            return;
+        }
+        if (Input.GetMouseButton(2))
+        {
+            if (cam_Script != null)
+                cam_Script.moveView(m_Orig, Input.mousePosition);
+        }
+        if (!Input.mouseScrollDelta.Equals(Vector2.zero))
+        {
+            if (cam_Script != null)
+                cam_Script.zoomView(Input.mouseScrollDelta);
+        }
     }
 
     private void setObjectType()
@@ -70,4 +104,26 @@ public class UI_Controller : MonoBehaviour
             aStar_Script.startAStar();
     }
 
+    public void btn_GenWalls()
+    {
+        if (aStar_Script != null)
+            aStar_Script.generate_Walls();
+    }
+
+    public void sl_Wall_Change(float value)
+    {
+        if (lbl_WallValue != null)
+            lbl_WallValue.text = string.Format("Wall: {0}", value.ToString());
+
+        if (aStar_Script != null)
+            aStar_Script.wallChange = value;
+
+        
+    }
+
+    public void sl_Wall_ButtonUp()
+    {
+        if (aStar_Script != null)
+            aStar_Script.generate_Walls();
+    }
 }

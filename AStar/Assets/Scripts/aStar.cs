@@ -205,7 +205,7 @@ public class aStar : MonoBehaviour
                 GameObject.Destroy(board[i][p].ItemObj);
     }
 
-    private void generate_Walls()
+    public void generate_Walls()
     {
         if (board == null || board.Count < 1)
             return;
