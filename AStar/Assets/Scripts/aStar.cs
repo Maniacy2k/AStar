@@ -66,6 +66,7 @@ public class aStar : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.H))
         {
             set_BoardStartEnd();
+            Debug.Log("HValue: " + Tools.calculate_HValue(board[board.Count - 1][1].ItemPos, board[0][board[0].Count - 1].ItemPos).ToString());
         }
 
         if (Input.GetKeyDown(KeyCode.C))
@@ -166,6 +167,7 @@ public class aStar : MonoBehaviour
         boardUpdate_Flag = true;
         openList = new List<int[]>();
         closedList = new List<int[]>();
+        set_BoardHValue(new int[] { 0, board[0].Count - 1 });
     }
 
     private void set_Parents(List<int[]> surr_BItems, int[] parentIndex)
@@ -190,6 +192,30 @@ public class aStar : MonoBehaviour
     {
         // to do
     }
+
+    private void set_BoardHValue(int[] endPosIndex)
+    {
+        if (board == null || board.Count < 1)
+            return;
+
+        for (int i = 0; i < board.Count; i++)
+            for (int p = 0; p < board[i].Count; p++)
+            {
+                if (board[i][p].ItemType.Equals((int)Tools.ItemType.wall) ||
+                    board[i][p].ItemType.Equals((int)Tools.ItemType.start) ||
+                    board[i][p].ItemType.Equals((int)Tools.ItemType.end)
+                    )
+                    continue;
+
+                board[i][p].H_Value = Tools.calculate_HValue(board[i][p].ItemPos, board[endPosIndex[0]][endPosIndex[1]].ItemPos);
+                GameObject tmp = new GameObject("HValue_" + board[i][p].H_Value.ToString());
+                tmp.transform.position = board[i][p].ItemPos;
+                tmp.transform.parent = board[i][p].ItemObj.transform;
+
+            }
+    }
+
+    #region BoardCurrItem
 
     /// <summary>
     /// Get board items around current position, Array Item values:
@@ -274,5 +300,7 @@ public class aStar : MonoBehaviour
 
         return true;
     }
+
+    #endregion
 
 }

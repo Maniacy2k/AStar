@@ -6,10 +6,15 @@ public class Item
 {    
     private int itemType;    
     private GameObject itemObj;
-    private int[] parent;
+    
     private bool inOpen = false;
     private bool inClosed = false;
     private int[] currIndex;
+
+    private int[] parent;
+    private float hValue;
+    private float gValue;
+    private float fValue;
 
     public Item() {
         itemObj = new GameObject();
@@ -73,5 +78,21 @@ public class Item
             if (this.ItemObj != null)
                 this.itemObj.transform.position = value;
         }
+    }
+
+    public float G_Value
+    {
+        get { return this.gValue; }
+        set { this.gValue = value; }
+    }
+    public float H_Value
+    {
+        get { return this.hValue; }
+        set { this.hValue = value; }
+    }
+    public float F_Value
+    {
+        get { return this.fValue; }
+        set { this.fValue = value; }
     }
 }

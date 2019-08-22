@@ -369,7 +369,7 @@ MonoBehaviour:
   width: 10
   height: 10
   cubeSpace: 5
-  wallChange: 0.2
+  wallChange: 0
 --- !u!114 &1574678178
 MonoBehaviour:
   m_ObjectHideFlags: 0
