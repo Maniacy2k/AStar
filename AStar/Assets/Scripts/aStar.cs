@@ -85,7 +85,7 @@ public class aStar : MonoBehaviour
 
         for (int i = 0; i < board.Count; i++)
             for (int p = 0; p < board[i].Count; p++)
-                board[i][p].get_ItemObj().GetComponent<Renderer>().material = path_M[board[i][p].get_ItemType()];
+                board[i][p].ItemObj.GetComponent<Renderer>().material = path_M[board[i][p].ItemType];
     }
 
     private void createBoard()
@@ -102,16 +102,16 @@ public class aStar : MonoBehaviour
             {
                 Item tmpItem = new Item((int)Tools.ItemType.inital, new int[] { i, p });
                 if (Random.Range(0f, 1f) <= wallChange)
-                    tmpItem.set_ItemType((int)Tools.ItemType.wall);
+                    tmpItem.ItemType = (int)Tools.ItemType.wall;
                 GameObject tmpObj = Instantiate(cube_Obj);
                 tmpObj.name = string.Format("cube_{0}_{1}", (i).ToString("0#"), (p).ToString("0#"));
                 xPos = (xPos + cubeSpace)+width;
                 tmpObj.transform.localScale = new Vector3(width, height, width);
                 tmpObj.transform.position = new Vector3(xPos, yPos, 0f);
                 tmpObj.transform.parent = boardHolder.transform;
-                if (tmpItem.get_ItemType().Equals((int)Tools.ItemType.wall))
+                if (tmpItem.ItemType.Equals((int)Tools.ItemType.wall))
                     tmpObj.GetComponent<Renderer>().material = path_M[1];
-                tmpItem.set_ItemObj(tmpObj);
+                tmpItem.ItemObj = tmpObj;
                 board[i].Add(tmpItem);
             }
             yPos = (yPos + cubeSpace) + height;
@@ -133,7 +133,7 @@ public class aStar : MonoBehaviour
 
         for (int i = 0; i < board.Count; i++)
             for (int p = 0; p < board[i].Count; p++)
-                GameObject.Destroy(board[i][p].get_ItemObj());
+                GameObject.Destroy(board[i][p].ItemObj);
     }
 
     private void generate_Walls()
@@ -145,14 +145,12 @@ public class aStar : MonoBehaviour
         {            
             for (int p = 0; p < height; p++)
             {
-                
-                board[i][p].get_ItemObj().GetComponent<Renderer>().material = path_M[0];
+                board[i][p].ItemType = (int)Tools.ItemType.inital;
+                board[i][p].ItemObj.GetComponent<Renderer>().material = path_M[0];
                 if (Random.Range(0f, 1f) <= wallChange) {
-                    board[i][p].set_ItemType((int)Tools.ItemType.wall);
-                    board[i][p].get_ItemObj().GetComponent<Renderer>().material = path_M[1];
+                    board[i][p].ItemType = (int)Tools.ItemType.wall;
+                    board[i][p].ItemObj.GetComponent<Renderer>().material = path_M[1];
                 }
-
-                
             }
         }
 
@@ -163,8 +161,8 @@ public class aStar : MonoBehaviour
         if (board == null || board.Count < 1)
             return;
 
-        board[board.Count - 1][0].set_ItemType((int)Tools.ItemType.start);
-        board[0][board[0].Count - 1].set_ItemType((int)Tools.ItemType.end);
+        board[board.Count - 1][0].ItemType = (int)Tools.ItemType.start;
+        board[0][board[0].Count - 1].ItemType = (int)Tools.ItemType.end;
         boardUpdate_Flag = true;
         openList = new List<int[]>();
         closedList = new List<int[]>();
@@ -178,7 +176,7 @@ public class aStar : MonoBehaviour
         for (int i = 0; i < surr_BItems.Count; i++)
         {
             if (surr_BItems[i] != null)
-                if (!board[surr_BItems[i][0]][surr_BItems[i][1]].get_ItemType().Equals((int)Tools.ItemType.wall) && !board[surr_BItems[i][0]][surr_BItems[i][1]].InOpen)
+                if (!board[surr_BItems[i][0]][surr_BItems[i][1]].ItemType.Equals((int)Tools.ItemType.wall) && !board[surr_BItems[i][0]][surr_BItems[i][1]].InOpen)
                 {
                     board[surr_BItems[i][0]][surr_BItems[i][1]].Parent = parentIndex;
                     openList.Add(surr_BItems[i]);

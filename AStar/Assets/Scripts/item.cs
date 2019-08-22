@@ -3,15 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Item 
-{
-    public Vector3 get_ItemPos() { return this.itemObj.transform.position; }
-    public void set_ItemPos(Vector3 _pos) { this.itemObj.transform.position = _pos; }
-    private int itemType;
-    public int get_ItemType() { return this.itemType; }
-    public void set_ItemType(int _itemType) { this.itemType = _itemType; }
+{    
+    private int itemType;    
     private GameObject itemObj;
-    public GameObject get_ItemObj() { return this.itemObj; }
-    public void set_ItemObj(GameObject _itemObj) { this.itemObj = _itemObj; }
     private int[] parent;
     private bool inOpen = false;
     private bool inClosed = false;
@@ -29,6 +23,11 @@ public class Item
     }
 
     
+    public int ItemType
+    {
+        get { return this.itemType; }
+        set { this.itemType = value; }
+    }
 
     public int[] Parent
     {
@@ -57,4 +56,22 @@ public class Item
         get { return this.currIndex; }
     }
 
+    public GameObject ItemObj
+    {
+        get { return this.itemObj; }
+        set { this.itemObj = value; }
+    }
+
+    public Vector3 ItemPos
+    {
+        get {
+            if (this.ItemObj != null)
+                return this.ItemObj.transform.position;
+            return Vector3.zero;
+        }
+        set {
+            if (this.ItemObj != null)
+                this.itemObj.transform.position = value;
+        }
+    }
 }
