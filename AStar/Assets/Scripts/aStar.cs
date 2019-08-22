@@ -23,6 +23,7 @@ public class aStar : MonoBehaviour
     private bool boardUpdate_Flag = false;
     private bool aStar_Flag = false;
     private bool path_Flag = false;
+    private bool noSol_Flag = false;
 
     public int width;
     public int height;
@@ -35,8 +36,8 @@ public class aStar : MonoBehaviour
     private List<int[]> openList;
     private List<int[]> closedList;
     private int[] currBIndex;
-    private int currOIndex;
-    
+    private int[] startIndex;
+    private int[] endIndex;
 
     // Start is called before the first frame update
     void Start()
@@ -82,11 +83,20 @@ public class aStar : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.C))
         {
-            Debug.Log("Start AStar");
-            aStar_Flag = !aStar_Flag;
+            startAStar();
             //List<int[]> tmpI = get_neightbourIndexs(new int[] { board.Count - 1, 0 });
             //set_Parents(tmpI, new int[] { board.Count - 1, 0 });
             //calculate_A_Star();
+        }
+    }
+
+    public void startAStar()
+    {
+        
+        if (set_BoardStartEnd())
+        {
+            Debug.Log("Start AStar");
+            aStar_Flag = true;
         }
     }
 
@@ -95,8 +105,43 @@ public class aStar : MonoBehaviour
         path_Flag = false;
         if (closedList == null || closedList.Count < 1)
             return;
+
+        int count = 0;
+        List<int[]> pathIndex = new List<int[]>();
+        if (noSol_Flag)
+        {
+            noSol_Flag = false;
+            int[] lowIndex = getClosedLowestF();
+            board[lowIndex[0]][lowIndex[1]].ItemType = (int)Tools.ItemType.path;
+            pathIndex.Add(lowIndex);
+        }
+        else
+        {
+            //board[closedList[closedList.Count - 1][0]][closedList[closedList.Count - 1][1]].ItemType = (int)Tools.ItemType.path;
+            pathIndex.Add(closedList[closedList.Count - 1]);
+        }
         
-        board[closedList[closedList.Count-1][0]][closedList[closedList.Count - 1][1]].ItemType = (int)Tools.ItemType.path;
+        
+        while (count < closedList.Count) {
+            int[] parent = pathIndex[pathIndex.Count-1];
+            if (board[parent[0]][parent[1]].Parent != null)
+                pathIndex.Add(board[parent[0]][parent[1]].Parent);
+            else
+                break;
+
+            count++;
+        }
+
+        if (pathIndex.Count > 0)
+        {
+            for (int i = 0; i < pathIndex.Count; i++)
+            {
+                int[] tmpI = pathIndex[i];
+                if (board[tmpI[0]][tmpI[1]].ItemType.Equals((int)Tools.ItemType.closed))
+                    board[tmpI[0]][tmpI[1]].ItemType = (int)Tools.ItemType.path;
+            }
+            boardUpdate_Flag = true;
+        }
         
     }
 
@@ -180,21 +225,32 @@ public class aStar : MonoBehaviour
 
     }
 
-    private void set_BoardStartEnd()
+    private bool set_BoardStartEnd()
     {
         if (board == null || board.Count < 1)
-            return;
+            return false;
 
-        board[board.Count - 1][0].ItemType = (int)Tools.ItemType.start;
-        board[0][board[0].Count - 1].ItemType = (int)Tools.ItemType.end;
+        //startIndex = new int[] { board.Count - 1 , 0 };
+        //endIndex = new int[] { 1, board[0].Count - 2 };
+        startIndex = Tools.getBoardItem(ref board, (int)Tools.ItemType.start);
+        endIndex = Tools.getBoardItem(ref board, (int)Tools.ItemType.end);
+
+        if (startIndex == null || endIndex == null)
+        {
+            Debug.Log("No start or end!");
+            return false;
+        }
+
+        board[startIndex[0]][startIndex[1]].ItemType = (int)Tools.ItemType.start;
+        board[endIndex[0]][endIndex[1]].ItemType = (int)Tools.ItemType.end;
         boardUpdate_Flag = true;
         openList = new List<int[]>();
         closedList = new List<int[]>();
-        set_BoardHValue(new int[] { 0, board[0].Count - 1 });
-        currBIndex = new int[] { board.Count - 1, 0 };
+        set_BoardHValue(endIndex);
+        currBIndex = startIndex;
         openList.Add(currBIndex);
-        currOIndex = 0;
-        board[board.Count - 1][0].G_Value = 0f;
+        board[startIndex[0]][startIndex[1]].F_Value = 0f;
+        return true;
     }
 
     private void set_Parents(List<int[]> surr_BItems, int[] parentIndex)
@@ -205,7 +261,8 @@ public class aStar : MonoBehaviour
         for (int i = 0; i < surr_BItems.Count; i++)
         {
             if (surr_BItems[i] != null)
-                if (!board[surr_BItems[i][0]][surr_BItems[i][1]].ItemType.Equals((int)Tools.ItemType.wall) && !board[surr_BItems[i][0]][surr_BItems[i][1]].InOpen)
+                if (!board[surr_BItems[i][0]][surr_BItems[i][1]].ItemType.Equals((int)Tools.ItemType.wall) 
+                    && !board[surr_BItems[i][0]][surr_BItems[i][1]].InOpen && !board[surr_BItems[i][0]][surr_BItems[i][1]].InClosed)
                 {
                     board[surr_BItems[i][0]][surr_BItems[i][1]].Parent = parentIndex;
                     openList.Add(surr_BItems[i]);
@@ -220,43 +277,52 @@ public class aStar : MonoBehaviour
         // to do        
         openList.Remove(currBIndex);
         closedList.Add(currBIndex);
-        board[currBIndex[0]][currBIndex[1]].InOpen = false;
         board[currBIndex[0]][currBIndex[1]].InClosed = true;
 
         List<int[]> neighbours = get_neightbourIndexs(currBIndex);
         set_Parents(neighbours, currBIndex);
         if (atEnd(neighbours)) {
-            // end aStar
-            aStar_Flag = true;
+            // end aStar            
+            return;
         }
 
-        float currG = board[currBIndex[0]][currBIndex[1]].G_Value;
+        //float currF = board[currBIndex[0]][currBIndex[1]].F_Value;
         for (int i = 0; i < neighbours.Count; i++)
         {
             if (neighbours[i] == null)
                 continue;
            
-            if (board[neighbours[i][0]][neighbours[i][1]].InClosed)
+            if (board[neighbours[i][0]][neighbours[i][1]].InClosed || board[neighbours[i][0]][neighbours[i][1]].ItemType.Equals((int)Tools.ItemType.wall))
                 continue;
 
-            board[neighbours[i][0]][neighbours[i][1]].H_Value = currG + Tools.G_ValueCost[i];
-
-            if (board[neighbours[i][0]][neighbours[i][1]].H_Value < board[neighbours[i][0]][neighbours[i][1]].G_Value)
-            {
-                board[neighbours[i][0]][neighbours[i][1]].G_Value = board[neighbours[i][0]][neighbours[i][1]].H_Value;
-                board[neighbours[i][0]][neighbours[i][1]].F_Value = board[neighbours[i][0]][neighbours[i][1]].G_Value + board[neighbours[i][0]][neighbours[i][1]].H_Value;
-            }
+            //board[neighbours[i][0]][neighbours[i][1]].H_Value = currG + Tools.G_ValueCost[i];
 
             if (!board[neighbours[i][0]][neighbours[i][1]].InOpen)
             {
                 openList.Add(neighbours[i]);
                 board[neighbours[i][0]][neighbours[i][1]].InOpen = true;
+                board[neighbours[i][0]][neighbours[i][1]].G_Value = board[currBIndex[0]][currBIndex[1]].G_Value + Tools.Move_ValueCost[i];
+                board[neighbours[i][0]][neighbours[i][1]].F_Value = board[neighbours[i][0]][neighbours[i][1]].G_Value + board[neighbours[i][0]][neighbours[i][1]].H_Value;
             }
+
+            if (board[neighbours[i][0]][neighbours[i][1]].F_Value < board[neighbours[i][0]][neighbours[i][1]].G_Value)
+            {
+                board[neighbours[i][0]][neighbours[i][1]].Parent = currBIndex;
+                board[neighbours[i][0]][neighbours[i][1]].G_Value = board[neighbours[i][0]][neighbours[i][1]].H_Value;
+                board[neighbours[i][0]][neighbours[i][1]].F_Value = board[neighbours[i][0]][neighbours[i][1]].G_Value + board[neighbours[i][0]][neighbours[i][1]].H_Value;
+            }
+
+
         }
         if (openList.Count > 0)
             currBIndex = getLowestFValue();
         else {
             aStar_Flag = false;
+            if (closedList.Count > 0)
+            {
+                noSol_Flag = true;
+                path_Flag = true;
+            }
             Debug.Log("No Solution!");
         }
 
@@ -283,16 +349,40 @@ public class aStar : MonoBehaviour
         return openList[best];
     }
 
+    private int[] getClosedLowestF()
+    {
+        int best = 1;
+        float bestF = 0f;
+        for (int i = 1; i < closedList.Count; i++)
+        {
+            if (i == 1)
+                bestF = board[closedList[i][0]][closedList[i][1]].F_Value;
+            else
+            {
+                if (board[closedList[i][0]][closedList[i][1]].F_Value > bestF)
+                {
+                    bestF = board[closedList[i][0]][closedList[i][1]].F_Value;
+                    best = i;
+                }
+            }
+        }
+
+        return closedList[best];
+    }
+
     private bool atEnd(List<int[]> neighbours)
     {
 
         for (int i = 0; i < neighbours.Count; i++) {
             if (neighbours[i] != null)
-                if (board[neighbours[i][0]][neighbours[i][0]].ItemType.Equals((int)Tools.ItemType.end))
+                if (board[neighbours[i][0]][neighbours[i][1]].ItemType.Equals((int)Tools.ItemType.end))
                 {
                     currBIndex = neighbours[i];
                     openList.Remove(neighbours[i]);
                     closedList.Add(neighbours[i]);
+                    board[neighbours[i][0]][neighbours[i][1]].InClosed = true;
+                    aStar_Flag = false;
+                    path_Flag = true;
                     return true;
                 }
         }
@@ -313,11 +403,12 @@ public class aStar : MonoBehaviour
                     board[i][p].ItemType.Equals((int)Tools.ItemType.end)
                     )
                     continue;
-
+                board[i][p].ItemType = (int)Tools.ItemType.inital;
+                board[i][p].set_InitialValues();
                 board[i][p].H_Value = Tools.calculate_HValue(board[i][p].ItemPos, board[endPosIndex[0]][endPosIndex[1]].ItemPos);
-                GameObject tmp = new GameObject("HValue_" + board[i][p].H_Value.ToString());
-                tmp.transform.position = board[i][p].ItemPos;
-                tmp.transform.parent = board[i][p].ItemObj.transform;
+                //GameObject tmp = new GameObject("HValue_" + board[i][p].H_Value.ToString());
+                //tmp.transform.position = board[i][p].ItemPos;
+                //tmp.transform.parent = board[i][p].ItemObj.transform;
 
             }
     }
@@ -409,5 +500,25 @@ public class aStar : MonoBehaviour
     }
 
     #endregion
+
+
+    public void setBoardType(string name, int iType)
+    {
+        if (name.Length < 1)
+            return;
+
+        if (board == null || board.Count < 1)
+            return;
+
+        for (int i = 0; i < board.Count; i++)
+            for (int p = 0; p < board[i].Count; p++) {
+                if (board[i][p].ItemObj.name.Equals(name)) {
+                    board[i][p].ItemType = iType;
+                    boardUpdate_Flag = true;
+                    return;
+                }
+            }
+
+    }
 
 }

@@ -23,4 +23,14 @@ public class Camera_Controller : MonoBehaviour
         cam_M.orthographicSize = oSize;
     }
 
+    public GameObject getRayHitObj(Vector3 pos)
+    {
+        Ray ray = cam_M.ScreenPointToRay(pos);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 400f))
+            return hit.transform.gameObject;
+
+        return null;
+    }
+
 }

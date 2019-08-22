@@ -11,7 +11,7 @@ public class Item
     private bool inClosed = false;
     private int[] currIndex;
 
-    private int[] parent;
+    private int[] parent = null;
     private float hValue;
     private float gValue;
     private float fValue;
@@ -47,7 +47,10 @@ public class Item
         {
             this.inOpen = value;
             if (this.inOpen)
-                this.itemType = (int)Tools.ItemType.open;
+            {
+                if (this.itemType.Equals((int)Tools.ItemType.inital))
+                    this.itemType = (int)Tools.ItemType.open;
+            }
             else
                 this.itemType = (int)Tools.ItemType.inital;
         }
@@ -59,7 +62,11 @@ public class Item
         set {
             this.inClosed = value;
             if (this.inClosed)
-                this.itemType = (int)Tools.ItemType.closed;
+            {
+                this.inOpen = false;
+                if (this.itemType.Equals((int)Tools.ItemType.open))
+                    this.itemType = (int)Tools.ItemType.closed;
+            }
             else
                 this.itemType = (int)Tools.ItemType.inital;
         }
@@ -103,5 +110,15 @@ public class Item
     {
         get { return this.fValue; }
         set { this.fValue = value; }
+    }
+
+    public void set_InitialValues()
+    {
+        this.hValue = 0f;
+        this.gValue = 0f;
+        this.fValue = 0f;
+        this.parent = null;
+        this.inOpen = false;
+        this.inClosed = false;
     }
 }
