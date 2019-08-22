@@ -37,23 +37,32 @@ public class Item
     public int[] Parent
     {
         get { return this.parent; }
-        set {
-            this.parent = value;
-            this.itemType = (int)Tools.ItemType.open;
-            this.InOpen = true;
-        }
+        set { this.parent = value; }
     }
 
     public bool InOpen
     {
         get { return this.inOpen; }
-        set { this.inOpen = value; }
+        set
+        {
+            this.inOpen = value;
+            if (this.inOpen)
+                this.itemType = (int)Tools.ItemType.open;
+            else
+                this.itemType = (int)Tools.ItemType.inital;
+        }
     }
 
     public bool InClosed
     {
         get { return this.inClosed; }
-        set { this.inClosed = value; }
+        set {
+            this.inClosed = value;
+            if (this.inClosed)
+                this.itemType = (int)Tools.ItemType.closed;
+            else
+                this.itemType = (int)Tools.ItemType.inital;
+        }
     }
 
     public int[] CurrIndex

@@ -21,6 +21,8 @@ public class aStar : MonoBehaviour
 
     private List<List<Item>> board;
     private bool boardUpdate_Flag = false;
+    private bool aStar_Flag = false;
+    private bool path_Flag = false;
 
     public int width;
     public int height;
@@ -32,6 +34,9 @@ public class aStar : MonoBehaviour
 
     private List<int[]> openList;
     private List<int[]> closedList;
+    private int[] currBIndex;
+    private int currOIndex;
+    
 
     // Start is called before the first frame update
     void Start()
@@ -52,6 +57,12 @@ public class aStar : MonoBehaviour
     {
         if (boardUpdate_Flag)
             update_BoardItem_Materials();
+
+        if (aStar_Flag)
+            calculate_A_Star();
+
+        if (path_Flag)
+            draw_Path();
     }
 
     private void FixedUpdate()
@@ -71,10 +82,22 @@ public class aStar : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.C))
         {
-            List<int[]> tmpI = get_BoardItemsCurrent(new int[] { board.Count - 1, 0 });
-            set_Parents(tmpI, new int[] { board.Count - 1, 0 });
-            calculate_BoardValues();
+            Debug.Log("Start AStar");
+            aStar_Flag = !aStar_Flag;
+            //List<int[]> tmpI = get_neightbourIndexs(new int[] { board.Count - 1, 0 });
+            //set_Parents(tmpI, new int[] { board.Count - 1, 0 });
+            //calculate_A_Star();
         }
+    }
+
+    private void draw_Path()
+    {
+        path_Flag = false;
+        if (closedList == null || closedList.Count < 1)
+            return;
+        
+        board[closedList[closedList.Count-1][0]][closedList[closedList.Count - 1][1]].ItemType = (int)Tools.ItemType.path;
+        
     }
 
     private void update_BoardItem_Materials()
@@ -168,6 +191,10 @@ public class aStar : MonoBehaviour
         openList = new List<int[]>();
         closedList = new List<int[]>();
         set_BoardHValue(new int[] { 0, board[0].Count - 1 });
+        currBIndex = new int[] { board.Count - 1, 0 };
+        openList.Add(currBIndex);
+        currOIndex = 0;
+        board[board.Count - 1][0].G_Value = 0f;
     }
 
     private void set_Parents(List<int[]> surr_BItems, int[] parentIndex)
@@ -188,9 +215,89 @@ public class aStar : MonoBehaviour
 
     }
 
-    private void calculate_BoardValues()
+    private void calculate_A_Star()
     {
-        // to do
+        // to do        
+        openList.Remove(currBIndex);
+        closedList.Add(currBIndex);
+        board[currBIndex[0]][currBIndex[1]].InOpen = false;
+        board[currBIndex[0]][currBIndex[1]].InClosed = true;
+
+        List<int[]> neighbours = get_neightbourIndexs(currBIndex);
+        set_Parents(neighbours, currBIndex);
+        if (atEnd(neighbours)) {
+            // end aStar
+            aStar_Flag = true;
+        }
+
+        float currG = board[currBIndex[0]][currBIndex[1]].G_Value;
+        for (int i = 0; i < neighbours.Count; i++)
+        {
+            if (neighbours[i] == null)
+                continue;
+           
+            if (board[neighbours[i][0]][neighbours[i][1]].InClosed)
+                continue;
+
+            board[neighbours[i][0]][neighbours[i][1]].H_Value = currG + Tools.G_ValueCost[i];
+
+            if (board[neighbours[i][0]][neighbours[i][1]].H_Value < board[neighbours[i][0]][neighbours[i][1]].G_Value)
+            {
+                board[neighbours[i][0]][neighbours[i][1]].G_Value = board[neighbours[i][0]][neighbours[i][1]].H_Value;
+                board[neighbours[i][0]][neighbours[i][1]].F_Value = board[neighbours[i][0]][neighbours[i][1]].G_Value + board[neighbours[i][0]][neighbours[i][1]].H_Value;
+            }
+
+            if (!board[neighbours[i][0]][neighbours[i][1]].InOpen)
+            {
+                openList.Add(neighbours[i]);
+                board[neighbours[i][0]][neighbours[i][1]].InOpen = true;
+            }
+        }
+        if (openList.Count > 0)
+            currBIndex = getLowestFValue();
+        else {
+            aStar_Flag = false;
+            Debug.Log("No Solution!");
+        }
+
+    }
+
+    private int[] getLowestFValue()
+    {
+        int best = 0;
+        float bestF = 0f;
+        for (int i = 0; i < openList.Count; i++)
+        {
+            if (i == 0)
+                bestF = board[openList[i][0]][openList[i][1]].F_Value;
+            else
+            {
+                if (board[openList[i][0]][openList[i][1]].F_Value < bestF)
+                {
+                    bestF = board[openList[i][0]][openList[i][1]].F_Value;
+                    best = i;
+                }
+            }
+        }
+
+        return openList[best];
+    }
+
+    private bool atEnd(List<int[]> neighbours)
+    {
+
+        for (int i = 0; i < neighbours.Count; i++) {
+            if (neighbours[i] != null)
+                if (board[neighbours[i][0]][neighbours[i][0]].ItemType.Equals((int)Tools.ItemType.end))
+                {
+                    currBIndex = neighbours[i];
+                    openList.Remove(neighbours[i]);
+                    closedList.Add(neighbours[i]);
+                    return true;
+                }
+        }
+
+        return false;
     }
 
     private void set_BoardHValue(int[] endPosIndex)
@@ -225,7 +332,7 @@ public class aStar : MonoBehaviour
     /// </summary>
     /// <param name="currPosIndex"></param>
     /// <returns></returns>
-    private List<int[]> get_BoardItemsCurrent(int[] currPosIndex)
+    private List<int[]> get_neightbourIndexs(int[] currPosIndex)
     {
         List<int[]> tmpI = new List<int[]>();
 
