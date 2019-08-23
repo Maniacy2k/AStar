@@ -14,6 +14,7 @@ public class UI_Controller : MonoBehaviour
     private int[] itemTypes = new int[] { 0,1,5,6 };
 
     public UnityEngine.UI.Text lbl_WallValue;
+    public List<UnityEngine.UI.InputField> sizeInputs;
 
     private Vector3 m_Orig;
     private Vector3 zoom2;
@@ -125,5 +126,38 @@ public class UI_Controller : MonoBehaviour
     {
         if (aStar_Script != null)
             aStar_Script.generate_Walls();
+    }
+
+    public void btn_SetSize()
+    {
+        if (sizeInputs == null || sizeInputs.Count < 1)
+            return;
+
+        if (sizeInputs[0].text.Length < 1 && sizeInputs[1].text.Length < 1)
+            return;
+
+        if (aStar_Script == null)
+            return;
+
+        int w = -1;
+        int h = -1;
+        if (sizeInputs[0].text.Length > 0) {
+            w = Tools.stringToInt(sizeInputs[0].text);
+        }
+
+        if (sizeInputs[1].text.Length > 0)
+        {
+            h = Tools.stringToInt(sizeInputs[1].text);
+        }
+        aStar_Script.setBoardSize(w, h);
+
+        for (int i = 0; i < sizeInputs.Count; i++)
+            sizeInputs[i].text = "";
+    }
+
+    public void tog_RandPos(bool value)
+    {
+        if (aStar_Script != null)
+            aStar_Script.set_RandPos(value);
     }
 }

@@ -18,12 +18,14 @@ public class aStar : MonoBehaviour
     public List<Material> path_M;
     public GameObject cube_Obj;
     public GameObject boardHolder;
+    public UnityEngine.UI.Button btn_Start;
 
     private List<List<Item>> board;
     private bool boardUpdate_Flag = false;
     private bool aStar_Flag = false;
     private bool path_Flag = false;
     private bool noSol_Flag = false;
+    private bool randPos_Flag = false;
 
     public int width;
     public int height;
@@ -92,12 +94,39 @@ public class aStar : MonoBehaviour
 
     public void startAStar()
     {
-        
-        if (set_BoardStartEnd())
+        if (!aStar_Flag)
         {
-            Debug.Log("Start AStar");
-            aStar_Flag = true;
+            if (set_BoardStartEnd())
+            {
+                Debug.Log("Start AStar");
+                aStar_Flag = true;
+                if (btn_Start != null)
+                    btn_Start.GetComponentInChildren<UnityEngine.UI.Text>().text = "Stop AStar";
+            }
         }
+        else {
+            aStar_Flag = false;
+            Debug.Log("Stop AStar");
+            if (btn_Start != null)
+                btn_Start.GetComponentInChildren<UnityEngine.UI.Text>().text = "Start AStar";
+        }
+    }
+
+    public void setBoardSize(int w, int h)
+    {
+        if (w > 0)
+            width = w;
+
+        if (h > 0)
+            height = h;
+
+        createBoard();
+
+    }
+
+    public void set_RandPos(bool value)
+    {
+        this.randPos_Flag = value;
     }
 
     private void draw_Path()
@@ -142,7 +171,9 @@ public class aStar : MonoBehaviour
             }
             boardUpdate_Flag = true;
         }
-        
+
+        if (btn_Start != null)
+            btn_Start.GetComponentInChildren<UnityEngine.UI.Text>().text = "Start AStar";
     }
 
     private void update_BoardItem_Materials()
@@ -232,8 +263,26 @@ public class aStar : MonoBehaviour
 
         //startIndex = new int[] { board.Count - 1 , 0 };
         //endIndex = new int[] { 1, board[0].Count - 2 };
-        startIndex = Tools.getBoardItem(ref board, (int)Tools.ItemType.start);
-        endIndex = Tools.getBoardItem(ref board, (int)Tools.ItemType.end);
+        if (!randPos_Flag)
+        {
+            startIndex = Tools.getBoardItem(ref board, (int)Tools.ItemType.start);
+            endIndex = Tools.getBoardItem(ref board, (int)Tools.ItemType.end);
+        }
+        else
+        {
+            if (startIndex != null && endIndex != null)
+            {
+                board[startIndex[0]][startIndex[1]].ItemType = (int)Tools.ItemType.inital;
+                board[endIndex[0]][endIndex[1]].ItemType = (int)Tools.ItemType.inital;
+                startIndex = null;
+                endIndex = null;
+            }
+            if (startIndex == null)
+                startIndex = Tools.getRandPosBoardItem(ref board, null);
+
+            if (endIndex == null)
+                endIndex = Tools.getRandPosBoardItem(ref board, startIndex);
+        }
 
         if (startIndex == null || endIndex == null)
         {

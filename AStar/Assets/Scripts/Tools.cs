@@ -54,5 +54,37 @@ public static class Tools
 
         return null;
     }
+
+    public static int[] getRandPosBoardItem(ref List<List<Item>> board, int[] notAt)
+    {
+        if (board == null || board.Count < 1)
+            return null;
+
+        int[] randPos = new int[2];
+        int beSafe = 0;
+        while (beSafe < 100)
+        {
+            randPos[0] = Random.Range(0, board.Count-1);
+            randPos[1] = Random.Range(0, board[0].Count - 1);
+            if (notAt == null)
+                return randPos;
+
+            if (!randPos.Equals(notAt))
+                return randPos;
+
+            beSafe++;
+        }
+        
+
+        return null;
+    }
+
+    public static int stringToInt(string txt) {
+        int value = -1;
+
+        int.TryParse(txt, out value);
+
+        return value;
+    }
     
 }
